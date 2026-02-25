@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #f8c536;
+}
+
+body {
+  background: radial-gradient(circle at top, #1c1c1c 0%, #090909 50%, #000000 100%);
+  color: #f3f3f3;
+  min-height: 100vh;
+}
+
+.card {
+  @apply rounded-xl border border-yellow-400/30 bg-black/50 shadow-lg shadow-yellow-500/10;
+}
