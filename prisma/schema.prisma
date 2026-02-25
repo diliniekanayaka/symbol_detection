@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  ESTIMATOR
+  PM
+  MEMBER
+  CLIENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BoQState {
+  DRAFT
+  SUBMITTED
+  APPROVED
+}
+
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  passwordHash    String?
+  fullName        String
+  emailVerifiedAt DateTime?
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  memberships     Membership[]
+  comments        TaskComment[]
+}
+
+model Organization {
+  id                String       @id @default(uuid())
+  slug              String       @unique
+  name              String
+  brandingPrimary   String       @default("#f8c536")
+  brandingSecondary String       @default("#0a0a0a")
+  timeZone          String       @default("UTC")
+  currency          String       @default("USD")
+  seatLimit         Int          @default(5)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  memberships       Membership[]
+  projects          Project[]
+  subscriptions     Subscription[]
+}
+
+model Membership {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String
+  role           Role
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model Project {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  clientName     String
+  contractValue  Decimal      @default(0)
+  budgetBaseline Decimal      @default(0)
+  progressAuto   Int          @default(0)
+  progressManual Int?
+  isArchived     Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tasks          Task[]
+  boqVersions    BoQVersion[]
+}
+
+model Task {
+  id            String       @id @default(uuid())
+  projectId     String
+  title         String
+  status        TaskStatus   @default(TODO)
+  priority      TaskPriority @default(MEDIUM)
+  estimateHours Float?
+  actualHours   Float        @default(0)
+  dueDate       DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments      TaskComment[]
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  authorId  String
+  body      String
+  isPrivate Boolean  @default(true)
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model BoQVersion {
+  id            String      @id @default(uuid())
+  projectId     String
+  name          String
+  versionLabel  String
+  state         BoQState    @default(DRAFT)
+  overheadPct   Decimal     @default(0)
+  marginPct     Decimal     @default(0)
+  taxPct        Decimal     @default(0)
+  discountPct   Decimal     @default(0)
+  revisionNotes String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  lineItems     BoQLineItem[]
+
+  @@unique([projectId, versionLabel])
+}
+
+model BoQLineItem {
+  id           String     @id @default(uuid())
+  boQVersionId String
+  description  String
+  unit         String
+  quantity     Float
+  rate         Decimal
+  total        Decimal
+  laborCost    Decimal    @default(0)
+  equipmentCost Decimal   @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  boQVersion   BoQVersion @relation(fields: [boQVersionId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id             String       @id @default(uuid())
+  organizationId String
+  planCode       String
+  status         String
+  stripeCustomer String?
+  stripeSubId    String?
+  seatsPurchased Int          @default(1)
+  currentPeriodEnd DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  organizationId String
+  actorUserId    String?
+  entityType     String
+  entityId       String
+  action         String
+  metadataJson   String?
+  createdAt      DateTime @default(now())
+}
