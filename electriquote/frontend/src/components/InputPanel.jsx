@@ -1,0 +1,2 @@
+import React from 'react';import VoiceRecorder from './VoiceRecorder';
+export default function InputPanel({value,setValue,usedVoice}){return <div className='bg-white p-4 rounded border'><textarea className='w-full border p-2' rows={4} value={value} onChange={e=>setValue(e.target.value)} /><div className='flex justify-between items-center mt-2 text-xs'><span>{value.split(/\s+/).filter(Boolean).length} words {usedVoice&&<span className='ml-2 bg-green-100 px-1 rounded'>(via voice)</span>}</span><VoiceRecorder onUse={(t)=>setValue((v)=>`${v} ${t}`.trim())}/></div></div>}
