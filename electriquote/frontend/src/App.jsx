@@ -1,0 +1,3 @@
+import React,{useState} from 'react';import InputPanel from './components/InputPanel';
+const steps=['Describe Project','Land Details','Requirements','House Plan','Wiring Diagram','Pricing','BOQ + Export'];
+export default function App(){const [step,setStep]=useState(0),[nlInput,setNl]=useState('');return <div className='p-4 space-y-4'><div className='flex gap-2'>{steps.map((s,i)=><div key={s} className={`px-2 py-1 rounded-full text-xs ${i<=step?'bg-green-600 text-white':'bg-gray-200'}`}>{i<step?'✓ ':''}{s}</div>)}</div><InputPanel value={nlInput} setValue={setNl} usedVoice={false}/><div className='flex justify-between'><button onClick={()=>setStep(Math.max(0,step-1))}>Back</button><button onClick={()=>setStep(Math.min(6,step+1))}>Continue</button></div></div>}

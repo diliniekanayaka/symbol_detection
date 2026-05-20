@@ -1,0 +1,2 @@
+export function createVoiceRecorder(onTranscript,onError){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';r.onresult=(event)=>{const transcript=Array.from(event.results).map(x=>x[0].transcript).join(' ');onTranscript(transcript,event.results[event.results.length-1].isFinal)};r.onerror=(e)=>onError(e.error);return {start:()=>r.start(),stop:()=>r.stop(),abort:()=>r.abort()};}
+export function isVoiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition)}
